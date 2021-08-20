@@ -67,6 +67,24 @@ spec: # 详情描述
         - containerPort: 80
 ~~~
 
+```shell
+% kubectl explain rs
+KIND:     ReplicaSet
+VERSION:  apps/v1
+DESCRIPTION:
+FIELDS:
+	apiVersion	<string>
+	kind	<string>
+	metadata	<Object>
+	spec	<Object>
+	status	<Object>
+	
+	
+% kubectl explain rs.spec
+```
+
+
+
 在这里面，需要新了解的配置项就是`spec`下面几个选项：
 
 - replicas：指定副本数量，其实就是当前rs创建出来的pod的数量，默认为1
@@ -79,7 +97,7 @@ spec: # 详情描述
 
 **创建ReplicaSet**
 
-创建pc-replicaset.yaml文件，内容如下：
+创建 pc-replicaset.yaml 文件，内容如下：
 
 ~~~yaml
 apiVersion: apps/v1
@@ -258,9 +276,14 @@ spec: # 详情描述
         - containerPort: 80
 ~~~
 
+```shell
+% kubectl explain deploy
+% kubectl explain deployment
+```
+
 **创建deployment**
 
-创建pc-deployment.yaml，内容如下：
+创建 pc-deployment.yaml
 
 ~~~yaml
 apiVersion: apps/v1
@@ -359,7 +382,7 @@ strategy：指定新的Pod替换旧的Pod的策略， 支持两个属性：
 
 重建更新
 
-1) 编辑pc-deployment.yaml,在spec节点下添加更新策略
+1) 编辑 pc-deployment.yaml ,在spec节点下添加更新策略
 
 ~~~yaml
 spec:
@@ -651,7 +674,7 @@ service/nginx   NodePort   10.109.57.248   <none>        80:31136/TCP   35s
 
 **3 部署HPA**
 
-创建pc-hpa.yaml
+创建 pc-hpa.yaml
 
 ~~~yaml
 apiVersion: autoscaling/v1
@@ -765,7 +788,7 @@ nginx-7df9756ccc-sl9c6   1/1     Terminating         0          6m50s
 
 ## DaemonSet(DS)
 
-​    DaemonSet类型的控制器可以保证在集群中的每一台（或指定）节点上都运行一个副本。一般适用于日志收集、节点监控等场景。也就是说，如果一个Pod提供的功能是节点级别的（每个节点都需要且只需要一个），那么这类Pod就适合使用DaemonSet类型的控制器创建。
+​    DaemonSet类型的控制器可以保证**在集群中的每一台（或指定）节点上都运行一个副本**。一般适用于日志收集、节点监控等场景。也就是说，如果一个Pod提供的功能是节点级别的（每个节点都需要且只需要一个），那么这类Pod就适合使用DaemonSet类型的控制器创建。
 
 ![](assets/image-20200612010223537.png)
 
@@ -807,7 +830,7 @@ spec: # 详情描述
         - containerPort: 80
 ~~~
 
-创建pc-daemonset.yaml，内容如下：
+创建 pc-daemonset.yaml，内容如下：
 
 ~~~yaml
 apiVersion: apps/v1
@@ -899,7 +922,7 @@ spec: # 详情描述
     如果指定为Always的话，就意味着一直重启，意味着job任务会重复去执行了，当然不对，所以不能设置为Always
 ~~~
 
-创建pc-job.yaml，内容如下：
+创建 pc-job.yaml
 
 ~~~yaml
 apiVersion: batch/v1
@@ -983,7 +1006,7 @@ job.batch "pc-job" deleted
 CronJob的资源清单文件：
 
 ~~~yaml
-apiVersion: batch/v1beta1 # 版本号
+apiVersion: batch/v1beta1 # 版本号, 目前已经是batch/v1
 kind: CronJob # 类型       
 metadata: # 元数据
   name: # rs名称 
@@ -1039,7 +1062,7 @@ concurrencyPolicy:
 	Replace: 替换，取消当前正在运行的作业并用新作业替换它
 ~~~
 
-创建pc-cronjob.yaml，内容如下：
+创建 pc-cronjob.yaml，内容如下：
 
 ~~~yaml
 apiVersion: batch/v1beta1
@@ -1106,7 +1129,7 @@ cronjob.batch "pc-cronjob" deleted
 
 <img src="assets/image-20200408194716912.png" style="zoom:100%;border:1px solid" />
 
-​    Service在很多情况下只是一个概念，真正起作用的其实是kube-proxy服务进程，每个Node节点上都运行着一个kube-proxy服务进程。当创建Service的时候会通过api-server向etcd写入创建的service的信息，而kube-proxy会基于监听的机制发现这种Service的变动，然后**它会将最新的Service信息转换成对应的访问规则**。
+​    **Service在很多情况下只是一个概念，真正起作用的其实是kube-proxy服务进程**，每个Node节点上都运行着一个kube-proxy服务进程。当创建Service的时候会通过api-server向etcd写入创建的service的信息，而kube-proxy会基于监听的机制发现这种Service的变动，然后**它会将最新的Service信息转换成对应的访问规则**。
 
 <img src="assets/image-20200509121254425.png" style="border:1px solid" />
 
@@ -1127,21 +1150,21 @@ TCP  10.97.97.97:80 rr
 
 kube-proxy目前支持三种工作模式:
 
-**userspace 模式**
+### **userspace 模式**
 
 ​    userspace模式下，kube-proxy会为每一个Service创建一个监听端口，发向Cluster IP的请求被Iptables规则重定向到kube-proxy监听的端口上，kube-proxy根据LB算法选择一个提供服务的Pod并和其建立链接，以将请求转发到Pod上。
-​    该模式下，kube-proxy充当了一个四层负责均衡器的角色。由于kube-proxy运行在userspace中，在进行转发处理时会增加内核和用户空间之间的数据拷贝，虽然比较稳定，但是效率比较低。
+​    该模式下，kube-proxy充当了一个四层负载均衡器的角色。由于kube-proxy运行在userspace中，在进行转发处理时会增加内核和用户空间之间的数据拷贝，虽然比较稳定，但是效率比较低。
 
 <img src="assets/image-20200509151424280.png" style="border: 1px solid; zoom: 57%;" />
 
-**iptables 模式**
+### **iptables 模式**
 
 ​    iptables模式下，kube-proxy为service后端的每个Pod创建对应的iptables规则，直接将发向Cluster IP的请求重定向到一个Pod IP。
 ​    该模式下kube-proxy不承担四层负责均衡器的角色，只负责创建iptables规则。该模式的优点是较userspace模式效率更高，但不能提供灵活的LB策略，当后端Pod不可用时也无法进行重试。
 
 <img src="assets/image-20200509152947714.png" style="zoom: 57%;"  />
 
-**ipvs 模式**
+### **ipvs 模式**
 
 ​    ipvs模式和iptables类似，kube-proxy监控Pod的变化并创建相应的ipvs规则。ipvs相对iptables转发效率更高。除此以外，ipvs支持更多的LB算法。
 
@@ -1196,7 +1219,7 @@ spec: # 描述
 
 在使用service之前，首先利用Deployment创建出3个pod，注意要为pod设置`app=nginx-pod`的标签
 
-创建deployment.yaml，内容如下：
+创建 svc-deployment.yaml，内容如下：
 
 ~~~yaml
 apiVersion: apps/v1
@@ -1247,7 +1270,7 @@ pc-deployment-66cb59b984-wnncx   1/1     Running    10.244.1.39   node1    app=n
 
 ### ClusterIP类型的Service
 
-创建service-clusterip.yaml文件
+创建 svc-clusterip.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1267,7 +1290,7 @@ spec:
 
 ~~~powershell
 # 创建service
-[root@master ~]# kubectl create -f service-clusterip.yaml
+[root@master ~]# kubectl create -f svc-clusterip.yaml
 service/service-clusterip created
 
 # 查看service
@@ -1307,7 +1330,7 @@ TCP  10.97.97.97:80 rr
 
 ​    Endpoint是kubernetes中的一个资源对象，存储在etcd中，用来记录一个service对应的所有pod的访问地址，它是根据service配置文件中selector描述产生的。
 
-​    一个Service由一组Pod组成，这些Pod通过Endpoints暴露出来，**Endpoints是实现实际服务的端点集合**。换句话说，service和pod之间的联系是通过endpoints实现的。
+​    一个Service由一组Pod组成，这些Pod通过Endpoints暴露出来，**Endpoints是实现实际服务的端点集合**。换句话说，**service和pod之间的联系是通过endpoints实现的**。
 
 ![image-20200509191917069](assets/image-20200509191917069.png)
 
@@ -1354,7 +1377,7 @@ TCP  10.97.97.97:80 rr persistent 10800
 10.244.2.33
   
 # 删除service
-[root@master ~]# kubectl delete -f service-clusterip.yaml
+[root@master ~]# kubectl delete -f svc-clusterip.yaml
 service "service-clusterip" deleted
 ~~~
 
@@ -1362,7 +1385,7 @@ service "service-clusterip" deleted
 
 ​    在某些场景中，开发人员可能不想使用Service提供的负载均衡功能，而希望自己来控制负载均衡策略，针对这种情况，kubernetes提供了HeadLiness  Service，这类Service不会分配Cluster IP，如果想要访问service，只能通过service的域名进行查询。
 
-创建service-headliness.yaml
+创建 svc-headliness.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1382,7 +1405,7 @@ spec:
 
 ~~~powershell
 # 创建service
-[root@master ~]# kubectl create -f service-headliness.yaml
+[root@master ~]# kubectl create -f svc-headliness.yaml
 service/service-headliness created
 
 # 获取service， 发现CLUSTER-IP未分配
@@ -1391,7 +1414,7 @@ NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE   SELE
 service-headliness   ClusterIP   None         <none>        80/TCP    11s   app=nginx-pod
 
 # 查看service详情
-[root@master ~]# kubectl describe svc service-headliness  -n dev
+[root@master ~]# kubectl describe svc service-headliness -n dev
 Name:              service-headliness
 Namespace:         dev
 Labels:            <none>
@@ -1405,6 +1428,8 @@ Endpoints:         10.244.1.39:80,10.244.1.40:80,10.244.2.33:80
 Session Affinity:  None
 Events:            <none>
 
+# 查看pod
+[root@master ~]# kubectl get pods -n dev
 # 查看域名的解析情况
 [root@master ~]# kubectl exec -it pc-deployment-66cb59b984-8p84h -n dev /bin/sh
 / # cat /etc/resolv.conf
@@ -1415,15 +1440,18 @@ search dev.svc.cluster.local svc.cluster.local cluster.local
 service-headliness.dev.svc.cluster.local. 30 IN A 10.244.1.40
 service-headliness.dev.svc.cluster.local. 30 IN A 10.244.1.39
 service-headliness.dev.svc.cluster.local. 30 IN A 10.244.2.33
+
+# 删除
+[root@master ~]# kubectl delete -f svc-headliness.yaml
 ~~~
 
 ### NodePort类型的Service
 
-​    在之前的样例中，创建的Service的ip地址只有集群内部才可以访问，如果希望将Service暴露给集群外部使用，那么就要使用到另外一种类型的Service，称为NodePort类型。NodePort的工作原理其实就是**将service的端口映射到Node的一个端口上**，然后就可以通过`NodeIp:NodePort`来访问service了。
+​    在之前的样例中，创建的Service的ip地址只有集群内部才可以访问，**如果希望将Service暴露给集群外部使用，那么就要使用到另外一种类型的Service，称为NodePort类型**。NodePort的工作原理其实就是**将service的端口映射到Node的一个端口上**，然后就可以通过`NodeIp:NodePort`来访问service了。
 
 <img src="assets/image-20200620175731338.png" style="border:1px solid"  />
 
-创建service-nodeport.yaml
+创建 svc-nodeport.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1443,7 +1471,7 @@ spec:
 
 ~~~powershell
 # 创建service
-[root@master ~]# kubectl create -f service-nodeport.yaml
+[root@master ~]# kubectl create -f svc-nodeport.yaml
 service/service-nodeport created
 
 # 查看service
@@ -1452,6 +1480,9 @@ NAME               TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)       SELECT
 service-nodeport   NodePort   10.105.64.191   <none>        80:30002/TCP  app=nginx-pod
 
 # 接下来可以通过电脑主机的浏览器去访问集群中任意一个nodeip的30002端口，即可访问到pod
+
+# 删除
+[root@master ~]# kubectl delete -f svc-nodeport.yaml
 ~~~
 
 ### LoadBalancer类型的Service
@@ -1479,7 +1510,7 @@ spec:
 
 ~~~powershell
 # 创建service
-[root@master ~]# kubectl  create -f service-externalname.yaml
+[root@master ~]# kubectl  create -f svc-externalname.yaml
 service/service-externalname created
 
 # 域名解析
@@ -1497,14 +1528,14 @@ www.a.shifen.com.       30      IN      A       39.156.66.14
 - NodePort方式的缺点是会占用很多集群机器的端口，那么当集群服务变多的时候，这个缺点就愈发明显
 - LB方式的缺点是每个service需要一个LB，浪费、麻烦，并且需要kubernetes之外设备的支持
 
-​    基于这种现状，kubernetes提供了Ingress资源对象，Ingress只需要一个NodePort或者一个LB就可以满足暴露多个Service的需求。工作机制大致如下图表示：
+​    基于这种现状，kubernetes提供了Ingress资源对象，**Ingress只需要一个NodePort或者一个LB就可以满足暴露多个Service的需求**。工作机制大致如下图表示：
 
 <img src="assets/image-20200623092808049.png" style="border:1px solid"/>
 
-​    实际上，Ingress相当于一个7层的负载均衡器，是kubernetes对反向代理的一个抽象，它的工作原理类似于Nginx，可以理解成在**Ingress里建立诸多映射规则，Ingress Controller通过监听这些配置规则并转化成Nginx的反向代理配置 , 然后对外部提供服务**。在这里有两个核心概念：
+​    实际上，**Ingress相当于一个7层的负载均衡器，是kubernetes对反向代理的一个抽象，它的工作原理类似于Nginx**，可以理解成在**Ingress里建立诸多映射规则，Ingress Controller通过监听这些配置规则并转化成Nginx的反向代理配置 , 然后对外部提供服务**。在这里有两个核心概念：
 
-- ingress：kubernetes中的一个对象，作用是定义请求如何转发到service的规则
-- ingress controller：具体实现反向代理及负载均衡的程序，对ingress定义的规则进行解析，根据配置的规则来实现请求转发，实现方式有很多，比如Nginx, Contour, Haproxy等等
+- **ingress**：kubernetes中的一个对象，作用是定义请求如何转发到service的规则
+- **ingress controller**：具体实现反向代理及负载均衡的程序，对ingress定义的规则进行解析，根据配置的规则来实现请求转发，实现方式有很多，比如Nginx, Contour, Haproxy等等
 
 Ingress（以Nginx为例）的工作原理如下：
 
@@ -1553,7 +1584,7 @@ ingress-nginx   NodePort   10.98.75.163   <none>        80:32240/TCP,443:31335/T
 
 <img src="assets/image-20200516102419998.png" style="zoom:80%;border:1px solid" />
 
-创建tomcat-nginx.yaml
+创建 ingress-nginx.yaml
 
 ~~~yaml
 apiVersion: apps/v1
@@ -1635,7 +1666,7 @@ spec:
 
 ~~~powershell
 # 创建
-[root@master ~]# kubectl create -f tomcat-nginx.yaml
+[root@master ~]# kubectl create -f ingress-nginx.yaml
 
 # 查看
 [root@master ~]# kubectl get svc -n dev
@@ -1646,7 +1677,7 @@ tomcat-service   ClusterIP   None         <none>        8080/TCP   48s
 
 ### Http代理
 
-创建ingress-http.yaml
+创建 ingress-http.yaml
 
 ~~~yaml
 apiVersion: extensions/v1beta1
@@ -1708,7 +1739,7 @@ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out
 kubectl create secret tls tls-secret --key tls.key --cert tls.crt
 ~~~
 
-创建ingress-https.yaml
+创建 ingress-https.yaml
 
 ~~~yaml
 apiVersion: extensions/v1beta1

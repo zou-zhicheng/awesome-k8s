@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-configmap
+  namespace: dev
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.17.1
+      volumeMounts: # 将configmap挂载到目录
+        - name: config
+          mountPath: /configmap/config
+  volumes: # 引用configmap
+    - name: config
+      configMap:
+        name: configmap

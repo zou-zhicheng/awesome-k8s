@@ -31,21 +31,21 @@ TCP  10.97.97.97:80 rr
 
 kube-proxy目前支持三种工作模式:
 
-**userspace 模式**
+### **userspace 模式**
 
 ​    userspace模式下，kube-proxy会为每一个Service创建一个监听端口，发向Cluster IP的请求被Iptables规则重定向到kube-proxy监听的端口上，kube-proxy根据LB算法选择一个提供服务的Pod并和其建立链接，以将请求转发到Pod上。
 ​    该模式下，kube-proxy充当了一个四层负责均衡器的角色。由于kube-proxy运行在userspace中，在进行转发处理时会增加内核和用户空间之间的数据拷贝，虽然比较稳定，但是效率比较低。
 
 <img src="assets/image-20200509151424280.png" style="border: 1px solid; zoom: 57%;" />
 
-**iptables 模式**
+### **iptables 模式**
 
 ​    iptables模式下，kube-proxy为service后端的每个Pod创建对应的iptables规则，直接将发向Cluster IP的请求重定向到一个Pod IP。
 ​    该模式下kube-proxy不承担四层负责均衡器的角色，只负责创建iptables规则。该模式的优点是较userspace模式效率更高，但不能提供灵活的LB策略，当后端Pod不可用时也无法进行重试。
 
 <img src="assets/image-20200509152947714.png" style="zoom: 57%;"  />
 
-**ipvs 模式**
+### **ipvs 模式**
 
 ​    ipvs模式和iptables类似，kube-proxy监控Pod的变化并创建相应的ipvs规则。ipvs相对iptables转发效率更高。除此以外，ipvs支持更多的LB算法。
 
@@ -266,7 +266,7 @@ service "service-clusterip" deleted
 
 ​    在某些场景中，开发人员可能不想使用Service提供的负载均衡功能，而希望自己来控制负载均衡策略，针对这种情况，kubernetes提供了HeadLiness  Service，这类Service不会分配Cluster IP，如果想要访问service，只能通过service的域名进行查询。
 
-创建service-headliness.yaml
+创建 service-headliness.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -684,9 +684,9 @@ kubernetes的Volume支持多种类型，比较常见的有下面几个：
 
 ### EmptyDir
 
-​    EmptyDir是最基础的Volume类型，一个EmptyDir就是Host上的一个空目录。
+​    EmptyDir是最基础的Volume类型，**一个EmptyDir就是Host上的一个空目录**。
 
-​    EmptyDir是在Pod被分配到Node时创建的，它的初始内容为空，并且无须指定宿主机上对应的目录文件，因为kubernetes会自动分配一个目录，当Pod销毁时， EmptyDir中的数据也会被永久删除。 EmptyDir用途如下：
+​    EmptyDir是在Pod被分配到Node时创建的，它的初始内容为空，并且**无须指定宿主机上对应的目录文件，因为kubernetes会自动分配一个目录，当Pod销毁时， EmptyDir中的数据也会被永久删除**。 EmptyDir用途如下：
 
 - 临时空间，例如用于某些应用程序运行时所需的临时目录，且无须永久保留
 
@@ -698,7 +698,7 @@ kubernetes的Volume支持多种类型，比较常见的有下面几个：
 
 <img src="assets/image-20200413174713773.png" style="zoom:80%;border:solid 1px" />
 
-创建一个volume-emptydir.yaml
+创建一个 volume-emptydir.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -753,7 +753,7 @@ volume-emptydir   2/2     Running   0          97s   10.244.1.100   node1  .....
 
 <img src="assets/image-20200413214031331.png" style="zoom:100%;border:1px solid" />
 
-创建一个volume-hostpath.yaml：
+创建一个 volume-hostpath.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -848,7 +848,7 @@ access.log  error.log
 [root@master ~]# yum install nfs-utils -y
 ~~~
 
-3）接下来，就可以编写pod的配置文件了，创建volume-nfs.yaml
+3）接下来，就可以编写pod的配置文件了，创建 volume-nfs.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -895,7 +895,7 @@ volume-nfs        2/2     Running   0          2m9s
 access.log  error.log
 ~~~
 
-##高级存储
+## 高级存储
 
 ### PV和PVC
 
@@ -998,7 +998,7 @@ PV 的关键配置参数说明：
 [root@master ~]#  systemctl restart nfs
 ~~~
 
-2) 创建pv.yaml
+2) 创建 pv.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1102,7 +1102,7 @@ PVC 的关键配置参数说明：
 
 **实验**
 
-1)  创建pvc.yaml，申请pv
+1)  创建 pvc.yaml，申请pv
 
 ~~~yaml
 apiVersion: v1
@@ -1168,7 +1168,7 @@ pv2    2Gi        RWX        Retain          Bound    dev/pvc2    3h37m    Files
 pv3    3Gi        RWX        Retain          Bound    dev/pvc3    3h37m    Filesystem   
 ~~~
 
-2)  创建pods.yaml, 使用pv
+2)  创建 pvc-pods.yaml, 使用pv
 
 ~~~yaml
 apiVersion: v1
@@ -1259,19 +1259,19 @@ PVC和PV是一一对应的，PV和PVC之间的相互作用遵循以下生命周�
 
   - 如果找不到，PVC则会无限期处于Pending状态，直到等到系统管理员创建了一个符合其要求的PV
 
-  PV一旦绑定到某个PVC上，就会被这个PVC独占，不能再与其他PVC进行绑定了
+  **PV一旦绑定到某个PVC上，就会被这个PVC独占，不能再与其他PVC进行绑定了**
 
 - **资源使用**：用户可在pod中像volume一样使用pvc
 
   Pod使用Volume的定义，将PVC挂载到容器内的某个路径进行使用。
 
-- **资源释放**：用户删除pvc来释放pv
+- **资源释放**：**用户删除pvc来释放pv**
 
   当存储资源使用完毕后，用户可以删除PVC，与该PVC绑定的PV将会被标记为“已释放”，但还不能立刻与其他PVC进行绑定。通过之前PVC写入的数据可能还被留在存储设备上，只有在清除之后该PV才能再次使用。
 
 - **资源回收**：kubernetes根据pv设置的回收策略进行资源的回收
 
-  对于PV，管理员可以设定回收策略，用于设置与之绑定的PVC释放资源之后如何处理遗留数据的问题。只有PV的存储空间完成回收，才能供新的PVC绑定和使用
+  **对于PV，管理员可以设定回收策略，用于设置与之绑定的PVC释放资源之后如何处理遗留数据的问题。只有PV的存储空间完成回收，才能供新的PVC绑定和使用**
 
 <img src="assets/image-20200515002806726.png" style="zoom:100%;border:1px solid" />
 
@@ -1281,7 +1281,7 @@ PVC和PV是一一对应的，PV和PVC之间的相互作用遵循以下生命周�
 
 ConfigMap是一种比较特殊的存储卷，它的主要作用是用来存储配置信息的。
 
-创建configmap.yaml，内容如下：
+创建 configmap.yaml，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -1295,7 +1295,7 @@ data:
     password:123456
 ~~~
 
-接下来，使用此配置文件创建configmap
+接下来，使用此配置文件创建 configmap
 
 ~~~powershell
 # 创建configmap
@@ -1319,7 +1319,7 @@ password:123456
 Events:  <none>
 ~~~
 
-接下来创建一个pod-configmap.yaml，将上面创建的configmap挂载进去
+接下来创建一个 pod-configmap.yaml，将上面创建的configmap挂载进去
 
 ~~~yaml
 apiVersion: v1
@@ -1362,6 +1362,11 @@ password:123456
 # 可以看到映射已经成功，每个configmap都映射成了一个目录
 # key--->文件     value---->文件中的内容
 # 此时如果更新configmap的内容, 容器中的值也会动态更新
+# 首先要更新configmap
+[root@master ~]# kubectl apply -f configmap.yaml
+# 然后再更新pod
+[root@master ~]# kubectl apply -f pod-configmap.yaml
+pod/pod-configmap configured
 ~~~
 
 ### Secret
@@ -1377,7 +1382,7 @@ YWRtaW4=
 MTIzNDU2
 ~~~
 
-2)  接下来编写secret.yaml，并创建Secret
+2)  接下来编写 secret.yaml，并创建Secret
 
 ~~~yaml
 apiVersion: v1
@@ -1409,7 +1414,7 @@ password:  6 bytes
 username:  5 bytes
 ~~~
 
-3) 创建pod-secret.yaml，将上面创建的secret挂载进去：
+3) 创建 secret-pod.yaml，将上面创建的secret挂载进去：
 
 ~~~yaml
 apiVersion: v1
@@ -1472,11 +1477,11 @@ admin
 
 **认证、授权与准入控制**   
 
-ApiServer是访问及管理资源对象的唯一入口。任何一个请求访问ApiServer，都要经过下面三个流程：
+**ApiServer是访问及管理资源对象的唯一入口**。任何一个请求访问ApiServer，都要经过下面三个流程：
 
-- Authentication（认证）：身份鉴别，只有正确的账号才能够通过认证
-- Authorization（授权）：  判断用户是否有权限对访问的资源执行特定的动作
-- Admission Control（准入控制）：用于补充授权机制以实现更加精细的访问控制功能。
+- **Authentication**（认证）：身份鉴别，只有正确的账号才能够通过认证
+- **Authorization**（授权）：  判断用户是否有权限对访问的资源执行特定的动作
+- **Admission Control**（准入控制）：用于补充授权机制以实现更加精细的访问控制功能。
 
 <img src="assets/image-20200520103942580.png" style="zoom:100%; border:1px solid" />
 
@@ -1536,7 +1541,7 @@ Kubernetes集群安全的最关键点在于如何识别并认证客户端身份�
 
 ​     授权发生在认证成功之后，通过认证就可以知道请求用户是谁， 然后Kubernetes会根据事先定义的授权策略来决定用户是否有权限访问，这个过程就称为授权。
 
-​     每个发送到ApiServer的请求都带上了用户和资源的信息：比如发送请求的用户、请求的路径、请求的动作等，授权就是根据这些信息和授权策略进行比较，如果符合策略，则认为授权通过，否则会返回错误。
+​     **每个发送到ApiServer的请求都带上了用户和资源的信息**：比如发送请求的用户、请求的路径、请求的动作等，授权就是根据这些信息和授权策略进行比较，如果符合策略，则认为授权通过，否则会返回错误。
 
 API Server目前支持以下几种授权策略：
 
@@ -1544,11 +1549,11 @@ API Server目前支持以下几种授权策略：
 
 - AlwaysAllow：允许接收所有请求，相当于集群不需要授权流程（Kubernetes默认的策略）
 
-- ABAC：基于属性的访问控制，表示使用用户配置的授权规则对用户请求进行匹配和控制
+- **ABAC**：基于属性的访问控制，表示使用用户配置的授权规则对用户请求进行匹配和控制
 
-- Webhook：通过调用外部REST服务对用户进行授权
+- **Webhook**：通过调用外部REST服务对用户进行授权
 
-- Node：是一种专用模式，用于对kubelet发出的请求进行访问控制
+- **Node**：是一种专用模式，用于对kubelet发出的请求进行访问控制
 
 - RBAC：基于角色的访问控制（kubeadm安装方式下的默认选项）
 
@@ -1570,7 +1575,7 @@ RBAC引入了4个顶级资源对象：
 
 **Role、ClusterRole**
 
-一个角色就是一组权限的集合，这里的权限都是许可形式的（白名单）。
+一个角色就是一组权限的集合，这里的权限都是许可形式的（**白名单**）。
 
 ~~~yaml
 # Role只能对命名空间内的资源进行授权，需要指定nameapce
@@ -1919,3 +1924,4 @@ ca.crt:     1025 bytes
 <img src="assets/image-20200520163832827.png" style="zoom:90%;border:1px solid" />
 
 > Dashboard提供了kubectl的绝大部分功能，这里不再一一演示
+

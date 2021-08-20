@@ -629,7 +629,7 @@ address: [顺义,昌平]
 
 ​    kubectl是kubernetes集群的命令行工具，通过它能够对集群本身进行管理，并能够在集群上进行容器化应用的安装部署。kubectl命令的语法如下：
 
-~~~md
+~~~shell
 kubectl [command] [type] [name] [flags]
 ~~~
 

@@ -306,13 +306,13 @@ Label的特点：
 
 当前有两种Label Selector：
 
-- 基于等式的Label Selector
+- **基于等式的Label Selector**
 
   name = slave: 选择所有包含Label中key="name"且value="slave"的对象
 
   env != production: 选择所有包括Label中的key="env"且value不等于"production"的对象
 
-- 基于集合的Label Selector
+- **基于集合的Label Selector**
 
   name in (master, slave): 选择所有包含Label中的key="name"且value="master"或"slave"的对象
 
@@ -377,7 +377,7 @@ spec:
 
 ## Deployment
 
-​    在kubernetes中，Pod是最小的控制单元，但是kubernetes很少直接控制Pod，一般都是通过Pod控制器来完成的。Pod控制器用于pod的管理，确保pod资源符合预期的状态，当pod的资源出现故障时，会尝试进行重启或重建pod。
+​    在kubernetes中，Pod是最小的控制单元，但是kubernetes很少直接控制Pod，一般都是通过Pod控制器来完成的。**Pod控制器用于pod的管理，确保pod资源符合预期的状态**，**当pod的资源出现故障时，会尝试进行重启或重建pod**。
 
 ​     在kubernetes中Pod控制器的种类有很多，本章节只介绍一种：Deployment。
 
@@ -485,6 +485,14 @@ spec:
 
 ​    删除：kubectl  delete  -f  deploy-nginx.yaml
 
+​	查看
+
+```shell
+% kubectl get deployment -n dev
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx   3/3     3            3           12s
+```
+
 ##  Service
 
 通过上节课的学习，已经能够利用Deployment来创建一组Pod来提供具有高可用性的服务。
@@ -508,7 +516,7 @@ Service可以看作是一组同类Pod**对外的访问接口**。借助Service�
 service/svc-nginx1 exposed
 
 # 查看service
-[root@master ~]# kubectl get svc svc-nginx -n dev -o wide
+[root@master ~]# kubectl get svc svc-nginx1 -n dev -o wide
 NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE     SELECTOR
 svc-nginx1   ClusterIP   10.109.179.231   <none>        80/TCP    3m51s   run=nginx
 
@@ -536,7 +544,7 @@ svc-nginx1   ClusterIP   10.109.179.231   <none>        80/TCP    3m51s   run=ng
 service/svc-nginx2 exposed
 
 # 此时查看，会发现出现了NodePort类型的Service，而且有一对Port（80:31928/TC）
-[root@master ~]# kubectl get svc  svc-nginx-1  -n dev -o wide
+[root@master ~]# kubectl get svc  svc-nginx2 -n dev -o wide
 NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE    SELECTOR
 svc-nginx2    NodePort    10.100.94.0      <none>        80:31928/TCP   9s     run=nginx
 
@@ -548,7 +556,8 @@ http://192.168.109.100:31928/
 **删除Service**
 
 ~~~powershell
-[root@master ~]# kubectl delete svc svc-nginx-1 -n dev                                   service "svc-nginx-1" deleted
+[root@master ~]# kubectl delete svc svc-nginx1 -n dev                                   
+service "svc-nginx-1" deleted
 ~~~
 
 **配置方式**
@@ -661,14 +670,14 @@ spec:  #必选，Pod中容器的详细定义
         - name: string
           value: string
       tcpSocket:     #对Pod内个容器健康检查方式设置为tcpSocket方式
-         port: number
-       initialDelaySeconds: 0       #容器启动完成后首次探测的时间，单位为秒
-       timeoutSeconds: 0    　　    #对容器健康检查探测等待响应的超时时间，单位秒，默认1秒
-       periodSeconds: 0     　　    #对容器监控检查的定期探测时间设置，单位秒，默认10秒一次
-       successThreshold: 0
-       failureThreshold: 0
-       securityContext:
-         privileged: false
+      	port: number
+       	initialDelaySeconds: 0       #容器启动完成后首次探测的时间，单位为秒
+       	timeoutSeconds: 0    　　    #对容器健康检查探测等待响应的超时时间，单位秒，默认1秒
+       	periodSeconds: 0     　　    #对容器监控检查的定期探测时间设置，单位秒，默认10秒一次
+       	successThreshold: 0
+       	failureThreshold: 0
+       	securityContext:
+        	privileged: false
   restartPolicy: [Always | Never | OnFailure]  #Pod的重启策略
   nodeName: <string> #设置NodeName表示将该Pod调度到指定到名称的node节点上
   nodeSelector: obeject #设置NodeSelector表示将该Pod调度到包含这个label的node上
@@ -695,9 +704,9 @@ spec:  #必选，Pod中容器的详细定义
 
 
 ~~~powershell
-#小提示：
+# 小提示：
 #	在这里，可通过一个命令来查看每种资源的可配置项
-#   kubectl explain 资源类型         查看某种资源可以配置的一级属性
+# kubectl explain 资源类型         查看某种资源可以配置的一级属性
 #	kubectl explain 资源类型.属性     查看属性的子属性
 [root@master ~]# kubectl explain pod
 KIND:     Pod
@@ -844,7 +853,6 @@ imagePullPolicy，用于设置镜像拉取策略，kubernetes支持配置三种�
 > ​    如果镜像tag为具体版本号， 默认策略是：IfNotPresent
 >
 > ​	如果镜像tag为：latest（最终版本） ，默认策略是always
->
 
 ~~~powershell
 # 创建Pod
@@ -872,9 +880,9 @@ Events:
 
 ​    在前面的案例中，一直有一个问题没有解决，就是的busybox容器一直没有成功运行，那么到底是什么原因导致这个容器的故障呢？
 
-​    原来busybox并不是一个程序，而是类似于一个工具类的集合，kubernetes集群启动管理后，它会自动关闭。解决方法就是让其一直在运行，这就用到了command配置。
+​    原来**busybox并不是一个程序，而是类似于一个工具类的集合，kubernetes集群启动管理后，它会自动关闭**。解决方法就是让其一直在运行，这就用到了command配置。
 
-创建pod-command.yaml文件，内容如下：
+创建 pod-command.yaml 文件，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -934,7 +942,7 @@ pod-command   2/2     Runing   0          2s
 
 ###  环境变量
 
-创建pod-env.yaml文件，内容如下：
+创建 pod-env.yaml 文件，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -990,7 +998,7 @@ FIELDS:
    protocol     <string>  # 端口协议。必须是UDP、TCP或SCTP。默认为“TCP”。
 ~~~
 
-接下来，编写一个测试案例，创建pod-ports.yaml
+接下来，编写一个测试案例，创建 pod-ports.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1037,11 +1045,11 @@ spec:
 
 - limits：用于限制运行时容器的最大占用资源，当容器占用资源超过limits时会被终止，并进行重启
 
-- requests ：用于设置容器需要的最小资源，如果环境资源不够，容器将无法启动
+- requests ：**用于设置容器需要的最小资源，如果环境资源不够，容器将无法启动**
 
 可以通过上面两个选项设置资源的上下限。
 
-接下来，编写一个测试案例，创建pod-resources.yaml
+接下来，编写一个测试案例，创建 pod-resources.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1149,11 +1157,11 @@ Warning  FailedScheduling  <unknown>  default-scheduler  0/2 nodes are available
 **pod的终止过程**
 
 1. 用户向apiServer发送删除pod对象的命令
-2. apiServcer中的pod对象信息会随着时间的推移而更新，在宽限期内（默认30s），pod被视为dead
+2. **apiServcer中的pod对象信息会随着时间的推移而更新，在宽限期内（默认30s），pod被视为dead**
 3. 将pod标记为terminating状态
 4. kubelet在监控到pod对象转为terminating状态的同时启动pod关闭过程
-5. 端点控制器监控到pod对象的关闭行为时将其从所有匹配到此端点的service资源的端点列表中移除
-6. 如果当前pod对象定义了preStop钩子处理器，则在其标记为terminating后即会以同步的方式启动执行
+5. **端点控制器监控到pod对象的关闭行为时将其从所有匹配到此端点的service资源的端点列表中移除**
+6. 如果当前pod对象定义了preStop钩子处理器，则在其标记为terminating后即会**以同步的方式启动执行**
 7. pod对象中的容器进程收到停止信号
 8. 宽限期结束后，若pod中还存在仍在运行的进程，那么pod对象会收到立即终止的信号
 9. kubelet请求apiServer将此pod资源的宽限期设置为0从而完成删除操作，此时pod对于用户已不可见
@@ -1176,7 +1184,7 @@ Warning  FailedScheduling  <unknown>  default-scheduler  0/2 nodes are available
 
 ​    为了简化测试，事先规定好mysql`(192.168.109.201)`和redis`(192.168.109.202)`服务器的地址
 
-创建pod-initcontainer.yaml，内容如下：
+创建 pod-initcontainer.yaml，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -1280,7 +1288,7 @@ kubernetes在主容器的启动之后和停止之前提供了两个钩子函数�
   ……
   ~~~
 
-接下来，以exec方式为例，演示下钩子函数的使用，创建pod-hook-exec.yaml文件，内容如下：
+接下来，以exec方式为例，演示下钩子函数的使用，创建 pod-hook-exec.yaml 文件，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -1310,18 +1318,24 @@ spec:
 pod/pod-hook-exec created
 
 # 查看pod
-[root@master ~]# kubectl get pods  pod-hook-exec -n dev -o wide
+[root@master ~]# kubectl get pods pod-hook-exec -n dev -o wide
 NAME           READY   STATUS     RESTARTS   AGE    IP            NODE    
 pod-hook-exec  1/1     Running    0          29s    10.244.2.48   node2   
 
 # 访问pod
 [root@master ~]# curl 10.244.2.48
 postStart...
+
+# 进入容器内部访问
+[root@master ~]# kubectl exec pod-hook-exec -n dev -c main-container -it /bin/sh
+# cd  /usr/share/nginx/html/
+# cat index.html
+postStart...
 ~~~
 
 ### 容器探测
 
-​    容器探测用于检测容器中的应用实例是否正常工作，是保障业务可用性的一种传统机制。如果经过探测，实例的状态不符合预期，那么kubernetes就会把该问题实例" 摘除 "，不承担业务流量。kubernetes提供了两种探针来实现容器探测，分别是：
+​    容器探测用于检测容器中的应用实例是否正常工作，是保障业务可用性的一种传统机制。**如果经过探测，实例的状态不符合预期，那么kubernetes就会把该问题实例" 摘除 "，不承担业务流量**。kubernetes提供了两种探针来实现容器探测，分别是：
 
 - liveness probes：存活性探针，用于检测应用实例当前是否处于正常运行状态，如果不是，k8s会重启容器
 
@@ -1370,7 +1384,7 @@ postStart...
 
 **方式一：Exec**
 
-创建pod-liveness-exec.yaml
+创建 pod-liveness-exec.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1408,6 +1422,7 @@ pod/pod-liveness-exec created
 # 观察上面的信息就会发现nginx容器启动之后就进行了健康检查
 # 检查失败之后，容器被kill掉，然后尝试进行重启（这是重启策略的作用，后面讲解）
 # 稍等一会之后，再观察pod信息，就可以看到RESTARTS不再是0，而是一直增长
+# JamesZOU测试, 发现status的状态在running和CrashLoopBackOff之间不断变化
 [root@master ~]# kubectl get pods pod-liveness-exec -n dev
 NAME                READY   STATUS             RESTARTS   AGE
 pod-liveness-exec   0/1     CrashLoopBackOff   2          3m19s
@@ -1417,7 +1432,7 @@ pod-liveness-exec   0/1     CrashLoopBackOff   2          3m19s
 
 **方式二：TCPSocket**
 
-创建pod-liveness-tcpsocket.yaml
+创建 pod-liveness-tcpsocket.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1464,7 +1479,7 @@ pod-liveness-tcpsocket   0/1     CrashLoopBackOff   2          3m19s
 
 **方式三：HTTPGet**
 
-创建pod-liveness-httpget.yaml
+创建 pod-liveness-httpget.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1561,7 +1576,7 @@ spec:
 
 ​    重启策略适用于pod对象中的所有容器，首次需要重启的容器，将在其需要时立即进行重启，随后再次需要重启的操作将由kubelet延迟一段时间后进行，且反复的重启操作的延迟时长以此为10s、20s、40s、80s、160s和300s，300s是最大延迟时长。
 
-创建pod-restartpolicy.yaml：
+创建 pod-restartpolicy.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1620,7 +1635,7 @@ pod-restartpolicy      0/1     Running   0          5min42s
 
 ​    NodeName用于强制约束将Pod调度到指定的Name的Node节点上。这种方式，其实是直接跳过Scheduler的调度逻辑，直接将Pod调度到指定名称的节点。
 
-接下来，实验一下：创建一个pod-nodename.yaml文件
+接下来，实验一下：创建一个 pod-nodename.yaml 文件
 
 ~~~yaml
 apiVersion: v1
@@ -1673,7 +1688,7 @@ node/node2 labeled
 node/node2 labeled
 ~~~
 
-2 创建一个pod-nodeselector.yaml文件，并使用它创建Pod
+2 创建一个 pod-nodeselector.yaml 文件，并使用它创建Pod
 
 ~~~yaml
 apiVersion: v1
@@ -1780,7 +1795,7 @@ pod.spec.affinity.nodeAffinity
 
 接下来首先演示一下`requiredDuringSchedulingIgnoredDuringExecution` ,
 
-创建pod-nodeaffinity-required.yaml
+创建 pod-nodeaffinity-required.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1838,7 +1853,7 @@ pod-nodeaffinity-required   1/1     Running   0          11s   10.244.1.89   nod
 
 接下来再演示一下`requiredDuringSchedulingIgnoredDuringExecution` ,
 
-创建pod-nodeaffinity-preferred.yaml
+创建 pod-nodeaffinity-preferred.yaml
 
 ~~~yaml
 apiVersion: v1
@@ -1910,9 +1925,9 @@ pod.spec.affinity.podAffinity
     weight 倾向权重，在范围1-100
 ~~~
 
-~~~markdown
+~~~shell
 topologyKey用于指定调度时作用域,例如:
-    如果指定为kubernetes.io/hostname，那就是以Node节点为区分范围
+  如果指定为kubernetes.io/hostname，那就是以Node节点为区分范围
 	如果指定为beta.kubernetes.io/os,则以Node节点的操作系统类型来区分
 ~~~
 
@@ -1946,7 +1961,7 @@ NAME                     READY   STATUS    RESTARTS   AGE
 pod-podaffinity-target   1/1     Running   0          4s
 ~~~
 
-2）创建pod-podaffinity-required.yaml，内容如下：
+2）创建 pod-podaffinity-required.yaml，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -2022,7 +2037,7 @@ pod-podaffinity-required 1/1     Running   0          3m29s   10.244.1.38   node
 pod-podaffinity-target   1/1     Running   0          9m25s   10.244.1.37   node1   podenv=pro
 ~~~
 
-2）创建pod-podantiaffinity-required.yaml，内容如下：
+2）创建 pod-podantiaffinity-required.yaml，内容如下：
 
 ~~~yaml
 apiVersion: v1
@@ -2141,14 +2156,13 @@ taint3-6d78dbd749-tktkq   0/1     Pending   0          6s    <none>   <none>   <
 ![image-20200514095913741](assets/image-20200514095913741.png)
 
 > 污点就是拒绝，容忍就是忽略，Node通过污点拒绝pod调度上去，Pod通过容忍忽略拒绝
->
 
 下面先通过一个案例看下效果：
 
 1. 上一小节，已经在node1节点上打上了`NoExecute`的污点，此时pod是调度不上去的
 2. 本小节，可以通过给pod添加容忍，然后将其调度上去
 
-创建pod-toleration.yaml,内容如下 
+创建 pod-toleration.yaml,内容如下 
 
 ~~~yaml
 apiVersion: v1

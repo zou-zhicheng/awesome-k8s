@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-podantiaffinity-required
+  namespace: dev
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.17.1
+  affinity:  #亲和性设置
+    podAntiAffinity: #设置pod亲和性
+      requiredDuringSchedulingIgnoredDuringExecution: # 硬限制, 新Pod必须要与拥有标签podenv=pro的pod不在同一Node上
+        - labelSelector:
+            matchExpressions: # 匹配podenv的值在["pro"]中的标签
+              - key: podenv
+                operator: In
+                values: ["pro"]
+          # topologyKey用于指定调度时作用域
+          # 如果指定为kubernetes.io/hostname，那就是以Node节点为区分范围
+          topologyKey: kubernetes.io/hostname
