@@ -659,3 +659,30 @@ service/ingress-nginx-controller-admission   ClusterIP   10.96.224.131   <none> 
 
 [双栈 部署ingress-nginx【附源码】_juestnow_51CTO博客](https://blog.51cto.com/juestnow/2493608)
 
+## 部署存储
+
+```bash
+# 所有机器安装
+yum install -y nfs-utils
+
+# nfs主节点
+echo "/nfs/data/ *(insecure,rw,sync,no_root_squash)" > /etc/exports
+mkdir -p /nfs/data
+systemctl enable rpcbind --now
+systemctl enable nfs-server --now
+# 配置生效
+exportfs -r
+
+# nfs从节点
+showmount -e 172.31.0.4
+# 执行以下命令挂载 nfs 服务器上的共享目录到本机路径 /root/nfsmount
+mkdir -p /nfs/data
+mount -t nfs 172.31.0.4:/nfs/data /nfs/data
+# 写入一个测试文件
+echo "hello nfs server" > /nfs/data/test.txt
+```
+
+### 原生方式挂载
+
+### PV/PVC挂载
+
