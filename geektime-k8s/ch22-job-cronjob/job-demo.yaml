@@ -1,0 +1,15 @@
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+spec:
+  template:
+    spec:
+      containers:
+        - name: pi
+          image: resouer/ubuntu-bc
+          command: ["sh", "-c", "echo 'scale=10000; 4*a(1)' | bc -l "]
+      restartPolicy: Never
+  backoffLimit: 4             # 重试次数为 4
+  activeDeadlineSeconds: 100  # 一旦运行超过了 100 s，这个 Job 的所有 Pod 都会被终止, 终止的原因是 reason: DeadlineExceeded。
