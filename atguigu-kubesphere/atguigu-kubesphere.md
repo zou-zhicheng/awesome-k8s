@@ -100,6 +100,8 @@ Please check the result using the command:
 
 # 启用可插拔组件
 
+[启用可插拔组件 (kubesphere.io)](https://kubesphere.io/zh/docs/pluggable-components/overview/)
+
 ## 应用商店
 
 1. 以 `admin` 身份登录控制台，点击左上角的**平台管理**，选择**集群管理**。

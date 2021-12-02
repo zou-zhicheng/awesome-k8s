@@ -39,3 +39,30 @@ Please check the result using the command:
        kubectl logs -n kubesphere-system $(kubectl get pod -n kubesphere-system -l app=ks-install -o jsonpath='{.items[0].metadata.name}') -f
 ```
 
+# 启用可插拔组件
+
+[启用可插拔组件 (kubesphere.io)](https://kubesphere.io/zh/docs/pluggable-components/overview/)
+
+# 创建企业空间、项目、用户和平台角色
+
+[创建企业空间、项目、用户和平台角色 (kubesphere.io)](https://kubesphere.io/zh/docs/quick-start/create-workspace-and-project/)
+
+# 部署并访问 Bookinfo
+
+[部署并访问 Bookinfo (kubesphere.io)](https://kubesphere.io/zh/docs/quick-start/deploy-bookinfo-to-k8s/)
+
+# 创建并部署 WordPress
+
+[创建并部署 WordPress (kubesphere.io)](https://kubesphere.io/zh/docs/quick-start/wordpress-deployment/)
+
+# DevOps 用户指南
+
+[DevOps 用户指南 (kubesphere.io)](https://kubesphere.io/zh/docs/devops-user-guide/)
+
+# 项目用户指南
+
+[项目用户指南 (kubesphere.io)](https://kubesphere.io/zh/docs/project-user-guide/)
+
+
+
+## 
