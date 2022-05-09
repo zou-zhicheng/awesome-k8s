@@ -1,0 +1,11 @@
+site_name: Kubernetes Learning
+repo_url: https://github.com/zou-zhicheng/awesome-k8s.git
+nav:
+    - Home: index.md
+    - Kubernetes: kubernetes/index.md
+    - KubeSphere: kubesphere/index.md
+    - CNCF: cncf/index.md
+plugins:
+    - search
+
+
