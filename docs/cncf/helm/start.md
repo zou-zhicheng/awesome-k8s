@@ -227,7 +227,7 @@ helmchart2	default  	1       	2022-05-09 15:28:21.695592789 +0800 CST	deployed	m
 - {{ .Release }}
 
 
-示例   
+## 3.1 示例   
 ```bash
 # change configmap
 $ vim mychart/templates/configmap.yaml
@@ -284,6 +284,8 @@ data:
   repository: {{ .Values.image.repository }}
 ```
 
+## 3.2 参考
+https://helm.sh/docs/chart_template_guide/builtin_objects/   
 
 # 5. 模板函数与管道
 ## 5.1 模板函数
@@ -389,8 +391,11 @@ data:
   myvaue: {{ .Values.myvalue | default "Hello Helm" | quote | upper }}
   repository: {{ .Values.image.repository  | repeat 3 | quote | upper }}
 ```
+## 5.3 参考
+https://helm.sh/docs/chart_template_guide/functions_and_pipelines/   
+https://helm.sh/docs/chart_template_guide/function_list/   
 
-## 6. 控制流程
+# 6. 控制流程
 ## 6.1 if/else
 ```bash
 {{ if PIPELINE }}
@@ -570,8 +575,19 @@ data:
 The toppings: |- line is declaring a multi-line string. So our list of toppings is actually not a YAML list. It's a big string. Why would we do this? Because the data in ConfigMaps data is composed of key/value pairs, where both the key and the value are simple strings. To understand why this is the case, take a look at the Kubernetes ConfigMap docs. For us, though, this detail doesn't matter much.   
 >>The |- marker in YAML takes a multi-line string. This can be a useful technique for embedding big blocks of data inside of your manifests, as exemplified here.
 
-## 6.4 其他
-## 6.5 参考
+## 6.4 define
+define declares a new named template inside of your template   
+详细信息, 请参考 [命名模板](#8-命名模板named-templates)   
+
+## 6.5 template
+template imports a named template   
+详细信息, 请参考 [命名模板](#8-命名模板named-templates)   
+
+## 6.6 block
+block declares a special kind of fillable template area   
+详细信息, 请参考 [命名模板](#8-命名模板named-templates)   
+
+## 6.7 参考
 https://helm.sh/docs/chart_template_guide/control_structures/   
 
 # 7. 变量
@@ -648,4 +664,211 @@ data:
 ## 7.2 参考
 https://helm.sh/docs/chart_template_guide/variables/   
 
-# 8. 命名模板
+# 8. 命名模板(Named Templates)
+**NOTES**
+> template names are global. If you declare two templates with the same name, whichever one is loaded last will be the one used. Because templates in subcharts are compiled together with top-level templates, you should be careful to name your templates with chart-specific names.
+
+## 8.1 define/template
+```yaml
+{{- define "MY.NAME" }}
+  # body of template here
+{{- end }}
+```
+
+示例   
+add file `mychart/templates/_helpers.tpl`   
+```yaml
+{{/* Generate basic labels */}}
+{{- define "mychart.labels" }}
+  labels:
+    generator: helm
+    date: {{ now | htmlDate }}
+{{- end }}
+```
+
+add content to file `mychart/templates/configmap.yaml`    
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+  {{- template "mychart.labels" }}
+data:
+  myvaue: {{ .Values.myvalue | default "Hello Helm" | quote | upper }}
+```
+
+run   
+```bash
+$ helm install --dry-run hellochart11 mychart/
+NAME: hellochart11
+LAST DEPLOYED: Tue May 10 10:20:27 2022
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+HOOKS:
+MANIFEST:
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hellochart11-configmap
+  labels:
+    generator: helm
+    date: 2022-05-10
+data:
+  myvaue: "HELLO HELM"
+```
+## 8.2 include
+
+## 8.3 block
+
+
+## 8.4 参考
+https://helm.sh/docs/chart_template_guide/named_templates/    
+
+# 9. NOTES.txt
+
+# 10. Subcharts and Global Values
+## 10.1 create subcharts
+```bash
+$ cd mychart/charts
+$ helm create mysubchart
+Creating mysubchart
+$ rm -rf mysubchart/templates/*
+```
+
+edit file `mychart/charts/mysubchart/values.yaml`   
+```yaml
+dessert: cake
+```
+
+create file `mychart/charts/mysubchart/templates/configmap.yaml`   
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cfgmap2
+data:
+  dessert: {{ .Values.dessert }}
+```
+
+run    
+```bash
+$ helm install helmsubchart1 --dry-run mysubchart/
+NAME: helmsubchart1
+LAST DEPLOYED: Tue May 10 11:05:21 2022
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+HOOKS:
+MANIFEST:
+---
+# Source: mysubchart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helmsubchart1-cfgmap2
+data:
+  dessert: cake
+```
+## 10.2 值覆盖(Overriding Values from a Parent Chart)
+edit `mychart/values.yaml`, add content   
+```yaml
+mysubchart:
+  dessert: ice cream
+```
+
+Any directives inside of the mysubchart section will be sent to the mysubchart chart.   
+run   
+```bash
+# back to mychart
+$ cd ../../
+
+$ helm install helmchart12 --dry-run mychart
+NAME: helmchart12
+LAST DEPLOYED: Tue May 10 11:09:16 2022
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+HOOKS:
+MANIFEST:
+---
+# Source: mychart/charts/mysubchart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helmchart12-cfgmap2
+data:
+  dessert: ice cream
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helmchart12-configmap
+data:
+  myvaue: "HELLO HELM"
+```
+
+## 10.3 全局值(Global Chart Values)
+全局值可以从任何 chart 或者子 chart中进行访问使用，values 对象中有一个保留的属性是Values.global，就可以被用来设置全局值.   
+
+add content in file `mychart/values.yaml`   
+```yaml
+global:
+  allin: helm
+```
+
+我们在 values.yaml 文件中添加了一个 global 的属性，这样的话无论在父 chart 中还是在子 chart 中我们都可以通过{{ .Values.global.allin }}来访问这个全局值了。   
+在 `mychart/templates/configmap.yaml` 和 `mychart/charts/mysubchart/templates/configmap.yaml` 文件的 data 区域下面都添加上如下内容：   
+```yaml
+  data:
+    allin: {{ .Values.global.allin }}
+```
+
+执行   
+```bash
+$ helm install helmchart13 --dry-run mychart
+NAME: helmchart13
+LAST DEPLOYED: Tue May 10 11:18:00 2022
+NAMESPACE: default
+STATUS: pending-install
+REVISION: 1
+TEST SUITE: None
+HOOKS:
+MANIFEST:
+---
+# Source: mychart/charts/mysubchart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helmchart13-cfgmap2
+data:
+  allin: helm
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helmchart13-configmap
+data:
+  allin: helm
+```
+全局变量对于传递这样的信息非常有用，不过也要注意我们不能滥用全局值。   
+## 10.4 参考
+https://helm.sh/docs/chart_template_guide/subcharts_and_globals/   
+
+# 11. Hooks
+
+## 参考
+https://helm.sh/docs/topics/charts_hooks/   
+
+# 参考
+https://helm.sh/docs/   
+https://www.qikqiak.com/k8s-book/   
+https://space.bilibili.com/403846607   
+

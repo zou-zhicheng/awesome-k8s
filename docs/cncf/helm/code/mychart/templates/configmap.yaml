@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+  {{- template "mychart.labels" . }}
+data:
+  myvaue: {{ .Values.myvalue | default "Hello Helm" | quote | upper }}
+  repository: {{ .Values.image.repository  | repeat 3 | quote | upper }}
+  {{ if eq .Values.image.repository "nginx" }}nginx1: true{{ end }}
+  {{- if eq .Values.image.repository "nginx" }}
+  nginx2: true
+  {{- end }}
+  {{ if eq .Values.image.repository "nginx" }}
+  nginx3: true
+  {{ end }}
+  {{- with .Values.ingress }}
+  {{- if eq .enabled false }}
+  enabled: false
+  {{- end }}
+  {{- end }}
+  toppings: |-
+    {{- range .Values.pizzaToppings }}
+    - {{ . | title | quote }}
+    {{- end }}    
+  sizes: |-
+    {{- range tuple "small" "medium" "large" }}
+    - {{ . }}
+    {{- end }}    
+  {{- $releaseName := .Release.Name }}
+  releaseName: {{ $releaseName }}
+  courses: |-
+    {{- range $key, $value := .Values.courses }}
+    - {{ $key }}: {{ $value | title | quote }}
+    {{- end }}  
+  toppings: |-
+    {{- range $index, $topping := .Values.pizzaToppings }}
+    - {{ $index }}: {{ $topping | title | quote }}
+    {{- end }}  
+  allin: {{ .Values.global.allin }}
